@@ -61,9 +61,10 @@ def run_Game():
     move_x = 0
     move_y = 0
     
-    #=====총알 좌표&속도=====#
+    #=====총알 좌표&속도&피해량=====#
     bulletXYD = []
     bulletspeed = 15
+    bullet_Damage = 20
     
     #=====적 오브젝트 설정=====#
     enemy_speed = 3
@@ -71,6 +72,8 @@ def run_Game():
     enemy_limit = 1
     enemy_count = 0
     enemy_size = 10
+    enemy_hp = 30
+    increse_time = 20
     direction_list = [LEFT,RIGHT,UP,DOWN]
     
     #=====시작 시간 설정=====#
@@ -90,22 +93,26 @@ def run_Game():
             if(random_direction==0):
                 enemy_x = Display_width
                 enemy_y = random.randrange(10,Display_height)
-                enemy_list.append([enemy_x,enemy_y,direction_list[random_direction]])
+                hp = enemy_hp
+                enemy_list.append([enemy_x,enemy_y,direction_list[random_direction],hp])
                 enemy_count+=1
             elif(random_direction==1):
                 enemy_x = 0
                 enemy_y = random.randrange(10,Display_height)
-                enemy_list.append([enemy_x,enemy_y,direction_list[random_direction]])
+                hp = enemy_hp
+                enemy_list.append([enemy_x,enemy_y,direction_list[random_direction],hp])
                 enemy_count+=1
             elif(random_direction==2):
                 enemy_x = random.randrange(10,Display_width)
                 enemy_y = Display_height
-                enemy_list.append([enemy_x,enemy_y,direction_list[random_direction]])
+                hp = enemy_hp
+                enemy_list.append([enemy_x,enemy_y,direction_list[random_direction],hp])
                 enemy_count+=1
             elif(random_direction==3):
                 enemy_x = random.randrange(10,Display_width)
                 enemy_y = 0
-                enemy_list.append([enemy_x,enemy_y,direction_list[random_direction]])
+                hp = enemy_hp
+                enemy_list.append([enemy_x,enemy_y,direction_list[random_direction],hp])
                 enemy_count+=1
             
         
@@ -241,8 +248,7 @@ def run_Game():
                         
         if len(enemy_list) != 0:
             for exy in enemy_list:
-                #bulletrect = pygame.rect(bx,by,player_size/2,player_size/2)
-                pygame.draw.circle(Display_surface,RED,(exy[0],exy[1]),10,10)
+                pygame.draw.circle(Display_surface,RED,(exy[0],exy[1]),enemy_size,enemy_size)
                 
                 
         #=====플레이어 이동 위치 조정=====#
@@ -267,14 +273,33 @@ def run_Game():
                     gameOver()
         
         if (len(enemy_list) != 0) and (len(bulletXYD) != 0 ):
-            for exy in enemy_list:
-                for bxy in bulletXYD:
-                    if b_e_crash_check:
-                        enemy_list.remove(exy)
-                        bulletXYD.remove(bxy)
+            for i,exy in enumerate(enemy_list):
+                for j, bxy in enumerate(bulletXYD):
+                    if b_e_crash_check(bulletXYD[j][0],bulletXYD[j][1],enemy_list[i][0],enemy_list[i][1]) == True:
+                        try:
+                            enemy_list[i][3] -= bullet_Damage
+                            bulletXYD.remove(bxy)
+                        except:
+                            pass                    
       
+        if len(enemy_list) != 0:
+            for exy in (enemy_list):
+                if exy[3] <= 0:
+                    try:
+                        enemy_list.remove(exy)
+                        enemy_count -= 1
+                    except:
+                        pass
         #=====시간 출력=====#
         print_time(delta_time)
+        
+        #=====적 숫자 추가=====# (20초 마다 1개씩 추가됨.)
+        if (delta_time % increse_time == 0) and (enemy_limit <= 15) and delta_time != 0:
+            try:
+                increse_time += 20
+                enemy_limit += 1
+            except:
+                pass
         
         
         pygame.display.update()
@@ -290,7 +315,7 @@ def terminate():
 def b_e_crash_check(bx,by,ex,ey): #: bullet - enemy 충돌 check
     x_gap = abs(bx-ex)
     y_gap = abs(by-ey)
-    if x_gap < 5 and y_gap < 5:
+    if x_gap < 10 and y_gap < 10:
         return True
     else:
         return False
