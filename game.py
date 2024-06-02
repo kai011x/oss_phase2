@@ -22,7 +22,7 @@ FPS = 0
 
 def init_Game():
     #=====글로벌 변수 선언=====#
-    global Display_surface, clock, player
+    global Display_surface, clock, player, bullet
     
     #=====파이게임 초기화=====#
     pygame.init()
@@ -38,7 +38,7 @@ def init_Game():
 
 def run_Game():
     #=====글로벌 변수 선언=====#
-    global Display_surface, clock, player,player_size 
+    global Display_surface, clock, player,player_size, bullet
     
     #=====플레이어 크기=====#
     player_size = 10
@@ -57,6 +57,10 @@ def run_Game():
     move_x = 0
     move_y = 0
     
+    #=====총알 좌표&속도=====#
+    bulletXYD = []
+    bulletspeed = 15
+        
     #=====게임 시작 식별자 초기화(초기 = True)=====#
     Isrun = True
     while Isrun:
@@ -88,6 +92,12 @@ def run_Game():
                     direction = DOWN
                     move_y += move_speed
                     
+                #=====총알 발사(발사 위치 저장)=====#
+                elif event.key == pygame.K_SPACE:
+                    bulletX = x
+                    bulletY = y
+                    bulletXYD.append([bulletX,bulletY,direction])
+                    
                 #=====게임 종료=====#
                 if event.key == K_ESCAPE:
                     terminate()
@@ -99,12 +109,53 @@ def run_Game():
                     move_x = 0
                 elif event.key == K_s or event.key == K_w:
                     move_y = 0
-                    
+            
                 
         #=====플레이어&배경 업데이트=====#        
         Display_surface.fill(BLACK)
         drawplayer(x,y)
         
+        #=====총알 경로 그리기=====#
+        if len(bulletXYD) != 0:
+            for i,bxy in enumerate(bulletXYD):
+                if bulletXYD[i][2]==RIGHT:
+                    bxy[0] += bulletspeed
+                    bulletXYD[i][0] = bxy[0]
+                    if bxy[0] >= Display_width:
+                        try:
+                            bulletXYD.remove(bxy)
+                        except:
+                            pass
+                elif bulletXYD[i][2]==LEFT:
+                    bxy[0] -= bulletspeed
+                    bulletXYD[i][0] = bxy[0]
+                    if bxy[0] <= 0:
+                        try:
+                            bulletXYD.remove(bxy)
+                        except:
+                            pass
+                elif bulletXYD[i][2]==UP:
+                    bxy[1] -= bulletspeed
+                    bulletXYD[i][1] = bxy[1]
+                    if bxy[1] <= 0:
+                        try:
+                            bulletXYD.remove(bxy)
+                        except:
+                            pass
+                elif bulletXYD[i][2]==DOWN:
+                    bxy[1] += bulletspeed
+                    bulletXYD[i][1] = bxy[1]
+                    if bxy[1] >= Display_height:
+                        try:
+                            bulletXYD.remove(bxy)
+                        except:
+                            pass
+                        
+        if len(bulletXYD) != 0:
+            for bxy in bulletXYD:
+                #bulletrect = pygame.rect(bx,by,player_size/2,player_size/2)
+                pygame.draw.circle(Display_surface,BLUE,(bxy[0],bxy[1]),5,5)
+                
         #=====플레이어 이동 위치 조정=====#
         x += move_x*FPS
         y += move_y*FPS
