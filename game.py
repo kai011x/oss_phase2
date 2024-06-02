@@ -54,12 +54,15 @@ def run_Game():
     #=====플레이어 초기 방향(우측)=====#
     direction = RIGHT
     
-    #=====플레이어 이동 속도 초기 설정=====#
-    move_speed =0.5
+    #=====플레이어 경험치 관련 설정=====#
+    player_level = 0
+    player_exp = 0
+    max_exp = 100
     
-    #=====플레이어 이동 수치 초기 설정=====#
+    #=====플레이어 이동 관련 초기 설정=====#
     move_x = 0
     move_y = 0
+    move_speed =0.5
     
     #=====총알 좌표&속도&피해량=====#
     bulletXYD = []
@@ -278,6 +281,7 @@ def run_Game():
                     if b_e_crash_check(bulletXYD[j][0],bulletXYD[j][1],enemy_list[i][0],enemy_list[i][1]) == True:
                         try:
                             enemy_list[i][3] -= bullet_Damage
+                            player_exp += 15
                             bulletXYD.remove(bxy)
                         except:
                             pass                    
@@ -300,7 +304,18 @@ def run_Game():
                 enemy_limit += 1
             except:
                 pass
+            
+        #=====플레이어 레벨업 확인=====#
+        if (player_exp >= max_exp):
+            try:
+                player_level += 1
+                player_exp -= max_exp
+                max_exp = max_exp*1.5
+            except:
+                pass
         
+        #=====레벨&경험치 출력=====#
+        print_exp(player_level,player_exp,max_exp)
         
         pygame.display.update()
     
@@ -367,10 +382,18 @@ def gameOver():
 #=====시간 출력 함수=====#
 def print_time(delta_time):
     tmfont = pygame.font.SysFont(None,40) #tm = time
-    tmtext = tmfont.render("Time : {}".format(delta_time),True,WHITE) #go = gameover
+    tmtext = tmfont.render("|  Time : {}".format(delta_time),True,WHITE) #tm = time
     tmtextpos = tmtext.get_rect()
-    tmtextpos.center = (65,25)
+    tmtextpos.center = (75,25)
     Display_surface.blit(tmtext,tmtextpos)
+
+#=====경험치 출력 함수=====#
+def print_exp(level, now,max):
+    exfont = pygame.font.SysFont(None,40) #tm = time
+    extext = exfont.render("|  LEVEL: {} |  EXP : {} / {}  |".format(level,now,max),True,WHITE) #ex = exp
+    extextpos = extext.get_rect()
+    extextpos.center = (370,25)
+    Display_surface.blit(extext,extextpos)
 
 #=====게임 초기화&게임 실행=====#
 init_Game()
