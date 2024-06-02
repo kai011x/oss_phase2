@@ -4,21 +4,24 @@ import time
 import pygame
 from pygame.locals import *
 
+#=====게임 설정=====#
 Display_width = 900
 Display_height = 600
+FPS = 0
 
+#=====색상 정의=====#
 BLACK = (0,0,0)
 WHITE = (255,255,255)
 RED = (255,0,0)
 GREEN = (0,255,0)
 BLUE = (0,0,255)
 
+#=====키 변수 설정=====#
 UP = 'up'
 DOWN = 'down'
 LEFT = 'left'
 RIGHT = 'right'
 
-FPS = 0
 
 def init_Game():
     #=====글로벌 변수 선언=====#
@@ -60,6 +63,16 @@ def run_Game():
     #=====총알 좌표&속도=====#
     bulletXYD = []
     bulletspeed = 15
+    
+    #=====적 오브젝트 설정=====#
+    enemy_speed = 3
+    enemy_list = []
+    enemy_limit = 1
+    enemy_count = 0
+    enemy_size = 10
+    direction_list = [LEFT,RIGHT,UP,DOWN]
+    
+    
         
     #=====게임 시작 식별자 초기화(초기 = True)=====#
     Isrun = True
@@ -67,6 +80,31 @@ def run_Game():
         
         #=====게임틱 저장(60프레임)=====#
         FPS = clock.tick(60)
+        
+        #=====적 생성=====#
+        if enemy_count < enemy_limit:
+            random_direction = random.randrange(0,4)
+            if(random_direction==0):
+                enemy_x = Display_width
+                enemy_y = random.randrange(10,Display_height)
+                enemy_list.append([enemy_x,enemy_y,direction_list[random_direction]])
+                enemy_count+=1
+            elif(random_direction==1):
+                enemy_x = 0
+                enemy_y = random.randrange(10,Display_height)
+                enemy_list.append([enemy_x,enemy_y,direction_list[random_direction]])
+                enemy_count+=1
+            elif(random_direction==2):
+                enemy_x = random.randrange(10,Display_width)
+                enemy_y = Display_height
+                enemy_list.append([enemy_x,enemy_y,direction_list[random_direction]])
+                enemy_count+=1
+            elif(random_direction==3):
+                enemy_x = random.randrange(10,Display_width)
+                enemy_y = 0
+                enemy_list.append([enemy_x,enemy_y,direction_list[random_direction]])
+                enemy_count+=1
+            
         
         #=====이벤트 입력 식별=====#
         for event in pygame.event.get():
@@ -153,8 +191,53 @@ def run_Game():
                         
         if len(bulletXYD) != 0:
             for bxy in bulletXYD:
-                #bulletrect = pygame.rect(bx,by,player_size/2,player_size/2)
                 pygame.draw.circle(Display_surface,BLUE,(bxy[0],bxy[1]),5,5)
+                
+        #=====적 이동 경로 그리기=====#
+        if len(enemy_list) != 0:
+            for i,exy in enumerate(enemy_list):
+                if enemy_list[i][2]==RIGHT:
+                    exy[0] += enemy_speed
+                    enemy_list[i][0] = exy[0]
+                    if exy[0] >= Display_width:
+                        try:
+                            enemy_list.remove(exy)
+                            enemy_count-=1
+                        except:
+                            pass
+                elif enemy_list[i][2]==LEFT:
+                    exy[0] -= enemy_speed
+                    enemy_list[i][0] = exy[0]
+                    if exy[0] <= 0:
+                        try:
+                            enemy_list.remove(exy)
+                            enemy_count-=1
+                        except:
+                            pass
+                elif enemy_list[i][2]==UP:
+                    exy[1] -= enemy_speed
+                    enemy_list[i][1] = exy[1]
+                    if exy[1] <= 0:
+                        try:
+                            enemy_list.remove(exy)
+                            enemy_count-=1
+                        except:
+                            pass
+                elif enemy_list[i][2]==DOWN:
+                    exy[1] += enemy_speed
+                    enemy_list[i][1] = exy[1]
+                    if exy[1] >= Display_height:
+                        try:
+                            enemy_list.remove(exy)
+                            enemy_count-=1
+                        except:
+                            pass
+                        
+        if len(enemy_list) != 0:
+            for exy in enemy_list:
+                #bulletrect = pygame.rect(bx,by,player_size/2,player_size/2)
+                pygame.draw.circle(Display_surface,RED,(exy[0],exy[1]),10,10)
+                
                 
         #=====플레이어 이동 위치 조정=====#
         x += move_x*FPS
@@ -182,7 +265,11 @@ def terminate():
     pygame.quit()
     sys.exit()
 
-#=====플레이어 오브젝트 생성=====#
+#=====충돌 감지 함수=====#
+def crash(bx,by,ex,ey):
+    asd = asd
+
+#=====플레이어 오브젝트 생성 함수=====#
 def drawplayer(x,y):
     pygame.draw.circle(Display_surface,WHITE,(x,y),player_size,10)
 
