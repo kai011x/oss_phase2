@@ -21,41 +21,60 @@ RIGHT = 'right'
 FPS = 0
 
 def init_Game():
+    #=====글로벌 변수 선언=====#
     global Display_surface, clock, player
+    
+    #=====파이게임 초기화=====#
     pygame.init()
+    
+    #=====디스플레이 크기 설정=====#
     Display_surface = pygame.display.set_mode((Display_width,Display_height))
+
+    #=====디스플레이 이름 설정=====#
     pygame.display.set_caption("2023312005's game")
+    
+    #=====틱 설정=====#
     clock = pygame.time.Clock()
 
 def run_Game():
+    #=====글로벌 변수 선언=====#
     global Display_surface, clock, player,player_size 
     
-    #플레이어 크기
+    #=====플레이어 크기=====#
     player_size = 10
     
-    #플레이어 초기 위치
+    #=====플레이어 위치 초기 설정(중앙)=====#
     x = Display_width*0.5
     y = Display_height*0.5
     
-    #플레이어 초기 방향
+    #=====플레이어 초기 방향(우측)=====#
     direction = RIGHT
     
-    #플레이어 이동 속도
+    #=====플레이어 이동 속도 초기 설정=====#
     move_speed =0.5
     
-    #플레이어 이동 수치
+    #=====플레이어 이동 수치 초기 설정=====#
     move_x = 0
     move_y = 0
     
+    #=====게임 시작 식별자 초기화(초기 = True)=====#
     Isrun = True
     while Isrun:
+        
+        #=====게임틱 저장(60프레임)=====#
         FPS = clock.tick(60)
+        
+        #=====이벤트 입력 식별=====#
         for event in pygame.event.get():
+            
+            #=====게임 창 종료=====#
             if event.type == QUIT:
                 terminate()
                 Isrun = False
-            
+            #=====플레이어 행동 식별=====#
             if event.type == KEYDOWN:
+                
+                #=====플레이어 이동=====#
                 if event.key == pygame.K_a:
                     direction = LEFT
                     move_x -= move_speed
@@ -68,10 +87,13 @@ def run_Game():
                 elif event.key == pygame.K_s:
                     direction = DOWN
                     move_y += move_speed
+                    
+                #=====게임 종료=====#
                 if event.key == K_ESCAPE:
                     terminate()
                     Isrun = False
                     
+            #=====미행동 판별=====#
             if event.type in [pygame.KEYUP]:
                 if event.key == K_a or event.key == K_d:
                     move_x = 0
@@ -79,23 +101,41 @@ def run_Game():
                     move_y = 0
                     
                 
-                
+        #=====플레이어&배경 업데이트=====#        
         Display_surface.fill(BLACK)
         drawplayer(x,y)
         
+        #=====플레이어 이동 위치 조정=====#
         x += move_x*FPS
         y += move_y*FPS
+        
+        #=====Display 이탈 제한=====#
+        if x-player_size <= 0:
+            x = player_size
+        elif x > Display_width - player_size:
+            x = Display_width - player_size
+        
+        if y-player_size <= 0:
+            y = player_size
+        elif y > Display_height - player_size:
+            y = Display_height - player_size
+            
+        #===========================================#
         
         pygame.display.update()
     
     pygame.quit()
 
+#=====게임 종료 함수=====#
 def terminate():
     pygame.quit()
     sys.exit()
 
+#=====플레이어 오브젝트 생성=====#
 def drawplayer(x,y):
     pygame.draw.circle(Display_surface,WHITE,(x,y),player_size,10)
 
+
+#=====게임 초기화&게임 실행=====#
 init_Game()
 run_Game()
