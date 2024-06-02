@@ -3,6 +3,7 @@ import sys
 import time
 import pygame
 from pygame.locals import *
+import datetime
 
 #=====게임 설정=====#
 Display_width = 900
@@ -72,6 +73,8 @@ def run_Game():
     enemy_size = 10
     direction_list = [LEFT,RIGHT,UP,DOWN]
     
+    #=====시작 시간 설정=====#
+    start_time = datetime.datetime.now()
     
         
     #=====게임 시작 식별자 초기화(초기 = True)=====#
@@ -148,6 +151,9 @@ def run_Game():
                 elif event.key == K_s or event.key == K_w:
                     move_y = 0
             
+        #=====시간 변화 인식=====#
+        cur_time = datetime.datetime.now()
+        delta_time = round((cur_time - start_time).total_seconds())
                 
         #=====플레이어&배경 업데이트=====#        
         Display_surface.fill(BLACK)
@@ -266,7 +272,9 @@ def run_Game():
                     if b_e_crash_check:
                         enemy_list.remove(exy)
                         bulletXYD.remove(bxy)
-                    
+      
+        #=====시간 출력=====#
+        print_time(delta_time)
         
         
         pygame.display.update()
@@ -330,6 +338,14 @@ def gameOver():
                 elif event.key == K_ESCAPE:
                     terminate()
                     Isrun = False
+
+#=====시간 출력 함수=====#
+def print_time(delta_time):
+    tmfont = pygame.font.SysFont(None,40) #tm = time
+    tmtext = tmfont.render("Time : {}".format(delta_time),True,WHITE) #go = gameover
+    tmtextpos = tmtext.get_rect()
+    tmtextpos.center = (65,25)
+    Display_surface.blit(tmtext,tmtextpos)
 
 #=====게임 초기화&게임 실행=====#
 init_Game()
