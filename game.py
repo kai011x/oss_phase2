@@ -2,6 +2,7 @@ import random
 import sys
 import time
 import pygame
+from pygame.locals import *
 
 Display_width = 900
 Display_height = 600
@@ -16,6 +17,8 @@ UP = 'up'
 DOWN = 'down'
 LEFT = 'left'
 RIGHT = 'right'
+
+FPS = 0
 
 def init_Game():
     global Display_surface, clock, player
@@ -34,21 +37,62 @@ def run_Game():
     x = Display_width*0.5
     y = Display_height*0.5
     
+    #플레이어 초기 방향
+    direction = RIGHT
+    
+    #플레이어 이동 속도
+    move_speed =0.5
+    
+    #플레이어 이동 수치
+    move_x = 0
+    move_y = 0
+    
     Isrun = True
     while Isrun:
+        FPS = clock.tick(60)
         for event in pygame.event.get():
-            if event.type in [pygame.QUIT]:
-                pygame.quit()
-                sys.exit()
+            if event.type == QUIT:
+                terminate()
+                Isrun = False
+            
+            if event.type == KEYDOWN:
+                if event.key == pygame.K_a:
+                    direction = LEFT
+                    move_x -= move_speed
+                elif event.key == pygame.K_d:
+                    direction = RIGHT
+                    move_x += move_speed
+                elif event.key == pygame.K_w:
+                    direction = UP
+                    move_y -= move_speed
+                elif event.key == pygame.K_s:
+                    direction = DOWN
+                    move_y += move_speed
+                if event.key == K_ESCAPE:
+                    terminate()
+                    Isrun = False
+                    
+            if event.type in [pygame.KEYUP]:
+                if event.key == K_a or event.key == K_d:
+                    move_x = 0
+                elif event.key == K_s or event.key == K_w:
+                    move_y = 0
+                    
                 
                 
         Display_surface.fill(BLACK)
         drawplayer(x,y)
+        
+        x += move_x*FPS
+        y += move_y*FPS
+        
         pygame.display.update()
-        clock.tick(60)
     
     pygame.quit()
 
+def terminate():
+    pygame.quit()
+    sys.exit()
 
 def drawplayer(x,y):
     pygame.draw.circle(Display_surface,WHITE,(x,y),player_size,10)
