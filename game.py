@@ -42,7 +42,7 @@ def init_Game():
 
 def run_Game():
     #=====글로벌 변수 선언=====#
-    global Display_surface, clock, player,player_size, bullet, Isrun
+    global Display_surface, clock, player,player_size, bullet, Isrun, bullet_Size
     
     #=====플레이어 크기=====#
     player_size = 10
@@ -62,12 +62,13 @@ def run_Game():
     #=====플레이어 이동 관련 초기 설정=====#
     move_x = 0
     move_y = 0
-    move_speed =0.5
+    move_speed =0.3
     
     #=====총알 좌표&속도&피해량=====#
     bulletXYD = []
     bulletspeed = 15
     bullet_Damage = 20
+    bullet_Size = 5
     
     #=====적 오브젝트 설정=====#
     enemy_speed = 3
@@ -77,6 +78,7 @@ def run_Game():
     enemy_size = 10
     enemy_hp = 30
     increse_time = 20
+    enemy_exp = 30
     direction_list = [LEFT,RIGHT,UP,DOWN]
     
     #=====시작 시간 설정=====#
@@ -89,6 +91,14 @@ def run_Game():
         
         #=====게임틱 저장(60프레임)=====#
         FPS = clock.tick(60)
+        
+        #=====시간 변화 인식=====#
+        cur_time = datetime.datetime.now()
+        delta_time = round((cur_time - start_time).total_seconds())
+                
+        #=====플레이어&배경 업데이트=====#        
+        Display_surface.fill(BLACK)
+        drawplayer(x,y)
         
         #=====적 생성=====#
         if enemy_count < enemy_limit:
@@ -160,14 +170,6 @@ def run_Game():
                     move_x = 0
                 elif event.key == K_s or event.key == K_w:
                     move_y = 0
-            
-        #=====시간 변화 인식=====#
-        cur_time = datetime.datetime.now()
-        delta_time = round((cur_time - start_time).total_seconds())
-                
-        #=====플레이어&배경 업데이트=====#        
-        Display_surface.fill(BLACK)
-        drawplayer(x,y)
         
         #=====총알 경로 그리기=====#
         if len(bulletXYD) != 0:
@@ -207,7 +209,7 @@ def run_Game():
                         
         if len(bulletXYD) != 0:
             for bxy in bulletXYD:
-                pygame.draw.circle(Display_surface,BLUE,(bxy[0],bxy[1]),5,5)
+                pygame.draw.circle(Display_surface,BLUE,(bxy[0],bxy[1]),bullet_Size,bullet_Size)
                 
         #=====적 이동 경로 그리기=====#
         if len(enemy_list) != 0:
@@ -268,7 +270,17 @@ def run_Game():
             y = player_size
         elif y > Display_height - player_size:
             y = Display_height - player_size
-            
+        
+        #=====적 숫자 추가=====# (20초 마다 1개씩 추가됨.)
+        if (delta_time % increse_time == 0) and (enemy_limit <= 15) and delta_time != 0:
+            try:
+                increse_time += 20
+                enemy_limit += 1
+                enemy_hp = enemy_hp*1.1
+                enemy_speed += 0.5
+            except:
+                pass
+        
         #=====충돌 확인=====#
         if len(enemy_list) != 0:
             for exy in enemy_list:
@@ -281,7 +293,6 @@ def run_Game():
                     if b_e_crash_check(bulletXYD[j][0],bulletXYD[j][1],enemy_list[i][0],enemy_list[i][1]) == True:
                         try:
                             enemy_list[i][3] -= bullet_Damage
-                            player_exp += 15
                             bulletXYD.remove(bxy)
                         except:
                             pass                    
@@ -291,31 +302,39 @@ def run_Game():
                 if exy[3] <= 0:
                     try:
                         enemy_list.remove(exy)
+                        player_exp += enemy_exp
                         enemy_count -= 1
                     except:
                         pass
-        #=====시간 출력=====#
-        print_time(delta_time)
         
-        #=====적 숫자 추가=====# (20초 마다 1개씩 추가됨.)
-        if (delta_time % increse_time == 0) and (enemy_limit <= 15) and delta_time != 0:
-            try:
-                increse_time += 20
-                enemy_limit += 1
-            except:
-                pass
-            
         #=====플레이어 레벨업 확인=====#
         if (player_exp >= max_exp):
             try:
                 player_level += 1
                 player_exp -= max_exp
                 max_exp = max_exp*1.5
+                option = level_up()
+                if option == 1:
+                    try:
+                        bullet_Damage += 5
+                    except:
+                        pass
+                elif option == 2:
+                    try:
+                        move_speed += 0.05
+                    except:
+                        pass
+                elif option == 3:
+                    try:
+                        bullet_Size += 1
+                    except:
+                        pass
             except:
                 pass
         
-        #=====레벨&경험치 출력=====#
+        #=====레벨&경험치&시간 출력=====#
         print_exp(player_level,player_exp,max_exp)
+        print_time(delta_time)
         
         pygame.display.update()
     
@@ -328,9 +347,10 @@ def terminate():
 
 #=====충돌 감지 함수=====#
 def b_e_crash_check(bx,by,ex,ey): #: bullet - enemy 충돌 check
+    global bullet_Size
     x_gap = abs(bx-ex)
     y_gap = abs(by-ey)
-    if x_gap < 10 and y_gap < 10:
+    if x_gap < 2*bullet_Size and y_gap < 2*bullet_Size:
         return True
     else:
         return False
@@ -348,9 +368,26 @@ def p_e_crach_check(px,py,ex,ey): #: player - enemy 충돌 check
 def drawplayer(x,y):
     pygame.draw.circle(Display_surface,WHITE,(x,y),player_size,10)
 
+#=====시간 출력 함수=====#
+def print_time(delta_time):
+    tmfont = pygame.font.SysFont(None,40) #tm = time
+    tmtext = tmfont.render("|  Time : {}".format(delta_time),True,WHITE) #tm = time
+    tmtextpos = tmtext.get_rect()
+    tmtextpos.center = (75,25)
+    Display_surface.blit(tmtext,tmtextpos)
+
+#=====경험치 출력 함수=====#
+def print_exp(level, now,max):
+    exfont = pygame.font.SysFont(None,40) #tm = time
+    extext = exfont.render("|  LEVEL: {} |  EXP : {} / {}  |".format(level,now,max),True,WHITE) #ex = exp
+    extextpos = extext.get_rect()
+    extextpos.center = (370,25)
+    Display_surface.blit(extext,extextpos)
+
 #=====게임 오버 함수=====#
 def gameOver():
     global Display_surface, Isrun
+    Display_surface.fill(BLACK)
     gofont = pygame.font.SysFont(None,100)
     gotext = gofont.render('GAME OVER',True,WHITE) #go = gameover
     gotextpos = gotext.get_rect()
@@ -378,22 +415,50 @@ def gameOver():
                 elif event.key == K_ESCAPE:
                     terminate()
                     Isrun = False
-
-#=====시간 출력 함수=====#
-def print_time(delta_time):
-    tmfont = pygame.font.SysFont(None,40) #tm = time
-    tmtext = tmfont.render("|  Time : {}".format(delta_time),True,WHITE) #tm = time
-    tmtextpos = tmtext.get_rect()
-    tmtextpos.center = (75,25)
-    Display_surface.blit(tmtext,tmtextpos)
-
-#=====경험치 출력 함수=====#
-def print_exp(level, now,max):
-    exfont = pygame.font.SysFont(None,40) #tm = time
-    extext = exfont.render("|  LEVEL: {} |  EXP : {} / {}  |".format(level,now,max),True,WHITE) #ex = exp
-    extextpos = extext.get_rect()
-    extextpos.center = (370,25)
-    Display_surface.blit(extext,extextpos)
+ 
+#=====플레이어 강화 함수=====#
+def level_up():
+    global Isrun
+    
+    lvfont = pygame.font.SysFont(None,40) #lv = level
+    lvtext = lvfont.render('Press the button for the option',True,WHITE) #tm = time
+    opt1text = lvfont.render('A. Bullet Damage Up',True,WHITE)
+    opt2text = lvfont.render('B. Player Speed Up',True,WHITE)
+    opt3text = lvfont.render('C. Bullet Size Up',True,WHITE)
+    
+    lvtextpos = lvtext.get_rect()
+    opt1textpos = opt1text.get_rect()
+    opt2textpos = opt2text.get_rect()
+    opt3textpos = opt3text.get_rect()
+    
+    lvtextpos.center = (Display_width/2,Display_height/2-85)
+    opt1textpos.center = (Display_width/2,Display_height/2-35)
+    opt2textpos.center = (Display_width/2,Display_height/2+20)
+    opt3textpos.center = (Display_width/2,Display_height/2+75)
+    
+    Display_surface.fill(BLACK)
+    Display_surface.blit(lvtext,lvtextpos)
+    Display_surface.blit(opt1text,opt1textpos)
+    Display_surface.blit(opt2text,opt2textpos)
+    Display_surface.blit(opt3text,opt3textpos)
+    
+    pygame.display.update()
+    
+    while True:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                terminate()
+                Isrun = False
+            elif event.type == KEYDOWN:
+                if event.key == K_a:
+                    return 1
+                elif event.key == K_b:
+                    return 2
+                elif event.key == K_c:
+                    return 3
+                elif event.key == K_ESCAPE:
+                    terminate()
+                    Isrun = False
 
 #=====게임 초기화&게임 실행=====#
 init_Game()
