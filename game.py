@@ -41,7 +41,7 @@ def init_Game():
 
 def run_Game():
     #=====글로벌 변수 선언=====#
-    global Display_surface, clock, player,player_size, bullet
+    global Display_surface, clock, player,player_size, bullet, Isrun
     
     #=====플레이어 크기=====#
     player_size = 10
@@ -254,7 +254,20 @@ def run_Game():
         elif y > Display_height - player_size:
             y = Display_height - player_size
             
-        #===========================================#
+        #=====충돌 확인=====#
+        if len(enemy_list) != 0:
+            for exy in enemy_list:
+                if p_e_crach_check(x,y,exy[0],exy[1]):
+                    gameOver()
+        
+        if (len(enemy_list) != 0) and (len(bulletXYD) != 0 ):
+            for exy in enemy_list:
+                for bxy in bulletXYD:
+                    if b_e_crash_check:
+                        enemy_list.remove(exy)
+                        bulletXYD.remove(bxy)
+                    
+        
         
         pygame.display.update()
     
@@ -266,13 +279,57 @@ def terminate():
     sys.exit()
 
 #=====충돌 감지 함수=====#
-def crash(bx,by,ex,ey):
-    asd = asd
+def b_e_crash_check(bx,by,ex,ey): #: bullet - enemy 충돌 check
+    x_gap = abs(bx-ex)
+    y_gap = abs(by-ey)
+    if x_gap < 5 and y_gap < 5:
+        return True
+    else:
+        return False
+    
 
+def p_e_crach_check(px,py,ex,ey): #: player - enemy 충돌 check
+    x_gap = abs(px-ex)
+    y_gap = abs(py-ey)
+    if x_gap < player_size+5 and y_gap < player_size+5:
+        return True
+    else:
+        return False
+    
 #=====플레이어 오브젝트 생성 함수=====#
 def drawplayer(x,y):
     pygame.draw.circle(Display_surface,WHITE,(x,y),player_size,10)
 
+#=====게임 오버 함수=====#
+def gameOver():
+    global Display_surface, Isrun
+    gofont = pygame.font.SysFont(None,100)
+    gotext = gofont.render('GAME OVER',True,WHITE) #go = gameover
+    gotextpos = gotext.get_rect()
+    gotextpos.center = (Display_width/2,Display_height/2-30)
+    Display_surface.blit(gotext,gotextpos)
+    
+    rsfont = pygame.font.SysFont(None,60)
+    rstext = rsfont.render('Press R to restrart',True,WHITE)
+    rstextpos = rstext.get_rect()
+    rstextpos.center = (Display_width/2,Display_height/2+30)
+    Display_surface.blit(rstext,rstextpos)
+    
+    pygame.display.update()
+    
+    Gameover = True
+    while True:
+        
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                terminate()
+                Isrun = False
+            elif event.type == KEYDOWN:
+                if event.key == K_r:
+                    run_Game()
+                elif event.key == K_ESCAPE:
+                    terminate()
+                    Isrun = False
 
 #=====게임 초기화&게임 실행=====#
 init_Game()
