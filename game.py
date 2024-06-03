@@ -35,7 +35,7 @@ def init_Game():
     Display_surface = pygame.display.set_mode((Display_width,Display_height))
 
     #=====디스플레이 이름 설정=====#
-    pygame.display.set_caption("2023312005's game")
+    pygame.display.set_caption("Shoot and Survive game")
     
     #=====틱 설정=====#
     clock = pygame.time.Clock()
