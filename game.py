@@ -432,8 +432,8 @@ def enemy_create():
 
 #=====적 이동=====#
 def enemy_moves():
-        curenemy_speed = enemy_speed * Round * 0.7
-        curenemy_size = enemy_size + Round
+        curenemy_speed = enemy_speed * Round * 0.8
+        curenemy_size = (enemy_size + Round) * 1.2
         
         if curenemy_size > 20:
             curenemy_size = 20
