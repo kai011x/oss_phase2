@@ -92,6 +92,8 @@ def run_Game():
         
     #=====게임 시작 식별자 초기화(초기 = True)=====#
     Isrun = True
+    BeforeRound = 1
+    Round = 1
     while Isrun:
         
         #=====게임틱 저장(60프레임)=====#
@@ -100,14 +102,21 @@ def run_Game():
         #=====시간 변화 인식=====#
         cur_time = datetime.datetime.now()
         delta_time = round((cur_time - start_time).total_seconds())
+        BeforeRound = Round
+        Round = delta_time // 10 + 1
         
-        Round = delta_time // 30 + 1
+        #라운드 변했는지 확인
+        if BeforeRound != Round:
+            delete_all_enemies()
+            continue
+
 
 
         #=====플레이어&배경 업데이트=====#        
         Display_surface.fill(BLACK)
         drawplayer(x,y)
-        
+
+
         #=====적 생성=====#
         if enemy_count < enemy_limit:
             random_direction = random.randrange(0,4)
@@ -348,6 +357,10 @@ def run_Game():
         pygame.display.update()
     
     pygame.quit()
+
+
+def delete_all_enemies():
+    enemy_list.clear()
 
 #=====게임 종료 함수=====#
 def terminate():
