@@ -31,10 +31,15 @@ enemy_limit = 1
 enemy_count = 0
 enemy_size = 10
 enemy_hp = 30
-increse_time = 20
+increse_time = 5
 enemy_exp = 30
 direction_list = [LEFT,RIGHT,UP,DOWN]
 
+#=====총알 좌표&속도&피해량=====#
+bulletXYD = []
+bulletspeed = 15
+bullet_Damage = 20
+bullet_Size = 7
 
 def init_Game():
     #=====글로벌 변수 선언=====#
@@ -74,11 +79,7 @@ def run_Game():
     move_y = 0
     move_speed =0.3
     
-    #=====총알 좌표&속도&피해량=====#
-    bulletXYD = []
-    bulletspeed = 15
-    bullet_Damage = 20
-    bullet_Size = 5
+
     
 
     
@@ -107,6 +108,7 @@ def run_Game():
         
         #라운드 변했는지 확인
         if BeforeRound != Round:
+            delete_all_enemies()
             continue
 
 
@@ -145,9 +147,10 @@ def run_Game():
                     
                 #=====총알 발사(발사 위치 저장)=====#
                 elif event.key == pygame.K_SPACE:
-                    bulletX = x
-                    bulletY = y
-                    bulletXYD.append([bulletX,bulletY,direction])
+                    bullet_create(x,y,direction)
+                    # bulletX = x
+                    # bulletY = y
+                    # bulletXYD.append([bulletX,bulletY,direction])
                     
                 #=====게임 종료=====#
                 if event.key == K_ESCAPE:
@@ -162,53 +165,10 @@ def run_Game():
                     move_y = 0
         
         #=====총알 경로 그리기=====#
-        if len(bulletXYD) != 0:
-            for i,bxy in enumerate(bulletXYD):
-                if bulletXYD[i][2]==RIGHT:
-                    bxy[0] += bulletspeed
-                    bulletXYD[i][0] = bxy[0]
-                    if bxy[0] >= Display_width:
-                        try:
-                            bulletXYD.remove(bxy)
-                        except:
-                            pass
-                elif bulletXYD[i][2]==LEFT:
-                    bxy[0] -= bulletspeed
-                    bulletXYD[i][0] = bxy[0]
-                    if bxy[0] <= 0:
-                        try:
-                            bulletXYD.remove(bxy)
-                        except:
-                            pass
-                elif bulletXYD[i][2]==UP:
-                    bxy[1] -= bulletspeed
-                    bulletXYD[i][1] = bxy[1]
-                    if bxy[1] <= 0:
-                        try:
-                            bulletXYD.remove(bxy)
-                        except:
-                            pass
-                elif bulletXYD[i][2]==DOWN:
-                    bxy[1] += bulletspeed
-                    bulletXYD[i][1] = bxy[1]
-                    if bxy[1] >= Display_height:
-                        try:
-                            bulletXYD.remove(bxy)
-                        except:
-                            pass
-                        
-        if len(bulletXYD) != 0:
-            for bxy in bulletXYD:
-                pygame.draw.circle(Display_surface,BLUE,(bxy[0],bxy[1]),bullet_Size,bullet_Size)
+        bullet_moves()    
 
         #적 이동 함수
         enemy_moves()                
-
-                        
-        # if len(enemy_list) != 0:
-        #     for exy in enemy_list:
-        #         pygame.draw.circle(Display_surface,YELLOW,(exy[0],exy[1]),enemy_size,enemy_size)
-                
                 
         #=====플레이어 이동 위치 조정=====#
         x += move_x*FPS
@@ -225,13 +185,11 @@ def run_Game():
         elif y > Display_height - player_size:
             y = Display_height - player_size
         
-        #=====적 숫자 추가=====# (20초 마다 1개씩 추가됨.)
+        #=====적 숫자 추가=====#
         if (delta_time % increse_time == 0) and (enemy_limit <= 15) and delta_time != 0:
             try:
                 increse_time += 20
                 enemy_limit += 1
-                enemy_hp = enemy_hp*1.1
-                enemy_speed += 0.5
             except:
                 pass
         
@@ -453,8 +411,8 @@ def enemy_create():
 
 #=====적 이동=====#
 def enemy_moves():
-        curenemy_speed = enemy_speed * Round * 1.2
-        curenemy_size = enemy_size * Round
+        curenemy_speed = enemy_speed * Round * 0.7
+        curenemy_size = enemy_size + Round
         
         if curenemy_size > 20:
             curenemy_size = 20
@@ -501,9 +459,60 @@ def enemy_moves():
             for exy in enemy_list:
                 pygame.draw.circle(Display_surface,YELLOW,(exy[0],exy[1]),curenemy_size,curenemy_size)
 
+
+#enemy_list에서 enemy를 index로 제거
 def enemy_delete(index):
+    global enemy_count
+
     enemy_list.remove(index)
     enemy_count-=1
+
+#bullet 생성
+def bullet_create(x,y,direction):
+    bulletX = x
+    bulletY = y
+    bulletXYD.append([bulletX,bulletY,direction])
+
+#bullet 이동 관련
+def bullet_moves():
+    if len(bulletXYD) != 0:
+            for i,bxy in enumerate(bulletXYD):
+                if bulletXYD[i][2]==RIGHT:
+                    bxy[0] += bulletspeed
+                    bulletXYD[i][0] = bxy[0]
+                    if bxy[0] >= Display_width:
+                        try:
+                            bulletXYD.remove(bxy)
+                        except:
+                            pass
+                elif bulletXYD[i][2]==LEFT:
+                    bxy[0] -= bulletspeed
+                    bulletXYD[i][0] = bxy[0]
+                    if bxy[0] <= 0:
+                        try:
+                            bulletXYD.remove(bxy)
+                        except:
+                            pass
+                elif bulletXYD[i][2]==UP:
+                    bxy[1] -= bulletspeed
+                    bulletXYD[i][1] = bxy[1]
+                    if bxy[1] <= 0:
+                        try:
+                            bulletXYD.remove(bxy)
+                        except:
+                            pass
+                elif bulletXYD[i][2]==DOWN:
+                    bxy[1] += bulletspeed
+                    bulletXYD[i][1] = bxy[1]
+                    if bxy[1] >= Display_height:
+                        try:
+                            bulletXYD.remove(bxy)
+                        except:
+                            pass
+                        
+    if len(bulletXYD) != 0:
+        for bxy in bulletXYD:
+            pygame.draw.circle(Display_surface,BLUE,(bxy[0],bxy[1]),bullet_Size,bullet_Size)
 
 #=====게임 초기화&게임 실행=====#
 init_Game()
