@@ -43,6 +43,10 @@ bulletspeed = 15
 bullet_Damage = 20
 bullet_Size = 7
 
+
+player_pos_x = 450
+player_pos_y = 300
+
 def init_Game():
     #=====글로벌 변수 선언=====#
     global Display_surface, clock, player, bullet, increse_time
@@ -71,7 +75,7 @@ def init_Game():
 
 def run_Game():
     #=====글로벌 변수 선언=====#
-    global Display_surface, clock, player,player_size, bullet, Isrun, bullet_Size 
+    global Display_surface, clock, player,player_size, bullet, Isrun, bullet_Size, player_pos_x, player_pos_y
     global enemy_speed, enemy_list, enemy_limit, enemy_count,enemy_size, enemy_hp, increse_time, enemy_exp, direction_list
     global Round
     
@@ -108,7 +112,7 @@ def run_Game():
     BeforeRound = 1
     Round = 1
     while Isrun:
-        
+
         #=====게임틱 저장(60프레임)=====#
         FPS = clock.tick(60)
         
@@ -161,9 +165,6 @@ def run_Game():
                 #=====총알 발사(발사 위치 저장)=====#
                 elif event.key == pygame.K_SPACE:
                     bullet_create(x,y,direction)
-                    # bulletX = x
-                    # bulletY = y
-                    # bulletXYD.append([bulletX,bulletY,direction])
                     
                 #=====게임 종료=====#
                 if event.key == K_ESCAPE:
@@ -186,6 +187,9 @@ def run_Game():
         #=====플레이어 이동 위치 조정=====#
         x += move_x*FPS
         y += move_y*FPS
+
+        player_pos_x = x
+        player_pos_y = y
         
         #=====Display 이탈 제한=====#
         if x-player_size <= 0:
@@ -427,13 +431,15 @@ def enemy_create():
             enemy_y = 0
 
         hp = cur_enemyhp
-        enemy_list.append([enemy_x,enemy_y,direction_list[random_direction],hp,YELLOW])
+        enemy_list.append([enemy_x,enemy_y,direction_list[random_direction],hp,YELLOW,False])
         enemy_count+=1
 
 #=====적 이동=====#
 def enemy_moves():
+        global player_pos_x, player_pos_y,Round
+
         curenemy_speed = enemy_speed * Round * 0.8
-        curenemy_size = (enemy_size + Round) * 1.2
+        curenemy_size = enemy_size + Round + 1
         
         if curenemy_size > 20:
             curenemy_size = 20
@@ -441,8 +447,18 @@ def enemy_moves():
         if curenemy_speed > 20:
             curenemy_speed = 20
 
+        if len(enemy_list) != 0 and Round > 0:
+            for k,enemy in enumerate(enemy_list):
+                temp = check_playerloca(player_pos_x,player_pos_y,enemy_list[k][0],enemy_list[k][1],enemy_list[k][2])
+                if enemy_list[k][5] == False and temp != 'none':
+                    enemy_list[k][2] = check_playerloca(player_pos_x,player_pos_y,enemy_list[k][0],enemy_list[k][1],enemy_list[k][2])
+                    enemy_list[k][5] = True
+
+
         if len(enemy_list) != 0:
             for i,exy in enumerate(enemy_list):
+
+
                 if enemy_list[i][2]==RIGHT:
                     exy[0] += curenemy_speed
                     enemy_list[i][0] = exy[0]
@@ -543,8 +559,35 @@ def enemy_colorChange(index,color):
     global enemy_list
     enemy_list[index][4]=color
 
-    
 
+def check_playerloca(px,py,ex,ey,direction):
+
+    x_gap = abs(px-ex)
+    y_gap = abs(py-ey)
+
+    if x_gap < 10 or y_gap < 10:
+        if direction == RIGHT:
+            if py > ey:
+                return DOWN
+            else:
+                return UP
+        elif direction == LEFT:
+            if py > ey:
+                return DOWN
+            else:
+                return UP
+        elif direction == UP:
+            if px > ex:
+                return RIGHT
+            else:
+                return LEFT
+        elif direction == DOWN:
+            if px > ex:
+                return RIGHT
+            else:
+                return LEFT
+    else:
+        return 'none'
 
 #=====게임 초기화&게임 실행=====#
 init_Game()
