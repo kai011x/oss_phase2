@@ -16,12 +16,15 @@ WHITE = (255,255,255)
 RED = (255,0,0)
 GREEN = (0,255,0)
 BLUE = (0,0,255)
+YELLOW = (255,255,0)
 
 #=====키 변수 설정=====#
 UP = 'up'
 DOWN = 'down'
 LEFT = 'left'
 RIGHT = 'right'
+
+
 
 
 def init_Game():
@@ -42,7 +45,9 @@ def init_Game():
 
 def run_Game():
     #=====글로벌 변수 선언=====#
-    global Display_surface, clock, player,player_size, bullet, Isrun, bullet_Size
+    global Display_surface, clock, player,player_size, bullet, Isrun, bullet_Size 
+    global enemy_speed, enemy_list, enemy_limit, enemy_count,enemy_size, enemy_hp, increse_time, enemy_exp, direction_list
+    global Round
     
     #=====플레이어 크기=====#
     player_size = 10
@@ -54,11 +59,7 @@ def run_Game():
     #=====플레이어 초기 방향(우측)=====#
     direction = RIGHT
     
-    #=====플레이어 경험치 관련 설정=====#
-    player_level = 0
-    player_exp = 0
-    max_exp = 100
-    
+
     #=====플레이어 이동 관련 초기 설정=====#
     move_x = 0
     move_y = 0
@@ -84,6 +85,10 @@ def run_Game():
     #=====시작 시간 설정=====#
     start_time = datetime.datetime.now()
     
+    #=====플레이어 경험치 관련 설정=====#
+    player_level = 0
+    player_exp = 0
+    max_exp = 100
         
     #=====게임 시작 식별자 초기화(초기 = True)=====#
     Isrun = True
@@ -95,7 +100,10 @@ def run_Game():
         #=====시간 변화 인식=====#
         cur_time = datetime.datetime.now()
         delta_time = round((cur_time - start_time).total_seconds())
-                
+        
+        Round = delta_time // 30 + 1
+
+
         #=====플레이어&배경 업데이트=====#        
         Display_surface.fill(BLACK)
         drawplayer(x,y)
@@ -253,7 +261,7 @@ def run_Game():
                         
         if len(enemy_list) != 0:
             for exy in enemy_list:
-                pygame.draw.circle(Display_surface,RED,(exy[0],exy[1]),enemy_size,enemy_size)
+                pygame.draw.circle(Display_surface,YELLOW,(exy[0],exy[1]),enemy_size,enemy_size)
                 
                 
         #=====플레이어 이동 위치 조정=====#
@@ -332,10 +340,11 @@ def run_Game():
             except:
                 pass
         
-        #=====레벨&경험치&시간 출력=====#
+        #=====레벨&경험치&시간 출력&라운드 출력=====#
         print_exp(player_level,player_exp,max_exp)
         print_time(delta_time)
-        
+        print_Round(Round)
+
         pygame.display.update()
     
     pygame.quit()
@@ -375,6 +384,13 @@ def print_time(delta_time):
     tmtextpos = tmtext.get_rect()
     tmtextpos.center = (75,25)
     Display_surface.blit(tmtext,tmtextpos)
+
+def print_Round(Round):
+    Roundfont = pygame.font.SysFont(None,40)
+    Roundtext = Roundfont.render("Round : {}".format(Round),True,WHITE)
+    Roundpos = Roundtext.get_rect()
+    Roundpos.center = (650,25)
+    Display_surface.blit(Roundtext,Roundpos)
 
 #=====경험치 출력 함수=====#
 def print_exp(level, now,max):
@@ -459,6 +475,11 @@ def level_up():
                 elif event.key == K_ESCAPE:
                     terminate()
                     Isrun = False
+
+
+# def enemy_upgrade():
+    
+
 
 #=====게임 초기화&게임 실행=====#
 init_Game()
