@@ -284,6 +284,7 @@ def run_Game():
         print_exp(player_level,player_exp,max_exp)
         print_time(delta_time)
         print_Round(Round)
+        print_skill_num(player_skill_num)
 
         pygame.display.update()
     
@@ -330,12 +331,21 @@ def print_time(delta_time):
     tmtextpos.center = (75,25)
     Display_surface.blit(tmtext,tmtextpos)
 
+#=====라운드 출력 함수=====#
 def print_Round(Round):
     Roundfont = pygame.font.SysFont(None,40)
     Roundtext = Roundfont.render("Round : {}".format(Round),True,WHITE)
     Roundpos = Roundtext.get_rect()
     Roundpos.center = (650,25)
     Display_surface.blit(Roundtext,Roundpos)
+
+#스킬 사용 가능 횟수 출력 함수
+def print_skill_num(num):
+    skillnumfont = pygame.font.SysFont(None,30)
+    skillnumtext = skillnumfont.render("Skill : {}".format(num),True,WHITE)
+    skillnumpos = skillnumtext.get_rect()
+    skillnumpos.center = (50,560)
+    Display_surface.blit(skillnumtext,skillnumpos)
 
 #=====경험치 출력 함수=====#
 def print_exp(level, now,max):
@@ -347,7 +357,7 @@ def print_exp(level, now,max):
 
 #=====게임 오버 함수=====#
 def gameOver():
-    global Display_surface, Isrun
+    global Display_surface, Isrun, bulletXYD
     Display_surface.fill(BLACK)
     gofont = pygame.font.SysFont(None,100)
     gotext = gofont.render('GAME OVER',True,WHITE) #go = gameover
@@ -365,6 +375,7 @@ def gameOver():
     
     Gameover = True
     delete_all_enemies()
+    bulletXYD.clear()
     while True:
         
 
@@ -573,7 +584,8 @@ def bullet_moves():
 #적 색깔 바꾸기(피격 처리용)
 def enemy_colorChange(index,color):
     global enemy_list
-    enemy_list[index][4]=color
+    if(enemy_list[index] !=  None):
+        enemy_list[index][4]=color
 
 #적기준 플레이어 위치 알려줌
 def check_playerloca(px,py,ex,ey,direction):
