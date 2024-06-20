@@ -4,6 +4,7 @@ import time
 import pygame
 from pygame.locals import *
 import datetime
+import threading
 
 #=====게임 설정=====#
 Display_width = 900
@@ -34,6 +35,7 @@ enemy_hp = 30
 increse_time = 5
 enemy_exp = 30
 direction_list = [LEFT,RIGHT,UP,DOWN]
+enemy_color = YELLOW
 
 #=====총알 좌표&속도&피해량=====#
 bulletXYD = []
@@ -43,7 +45,8 @@ bullet_Size = 7
 
 def init_Game():
     #=====글로벌 변수 선언=====#
-    global Display_surface, clock, player, bullet
+    global Display_surface, clock, player, bullet, increse_time
+    global enemy_speed, enemy_list, enemy_limit, enemy_count,enemy_size, enemy_hp, increse_time, enemy_exp, direction_list
     
     #=====파이게임 초기화=====#
     pygame.init()
@@ -56,6 +59,15 @@ def init_Game():
     
     #=====틱 설정=====#
     clock = pygame.time.Clock()
+
+    enemy_speed = 3
+    enemy_list = []
+    enemy_limit = 1
+    enemy_count = 0
+    enemy_size = 10
+    enemy_hp = 30
+    increse_time = 5
+    enemy_exp = 30
 
 def run_Game():
     #=====글로벌 변수 선언=====#
@@ -109,6 +121,7 @@ def run_Game():
         #라운드 변했는지 확인
         if BeforeRound != Round:
             delete_all_enemies()
+            increse_time = 1
             continue
 
 
@@ -204,8 +217,11 @@ def run_Game():
                 for j, bxy in enumerate(bulletXYD):
                     if b_e_crash_check(bulletXYD[j][0],bulletXYD[j][1],enemy_list[i][0],enemy_list[i][1]) == True:
                         try:
-                            enemy_list[i][3] -= bullet_Damage
                             bulletXYD.remove(bxy)
+                            enemy_list[i][4] = RED
+                            timer = threading.Timer(0.1, enemy_colorChange, args=[i, YELLOW])
+                            timer.start()
+                            enemy_list[i][3] -= bullet_Damage
                         except:
                             pass                    
       
@@ -264,6 +280,7 @@ def terminate():
 
 #=====충돌 감지 함수=====#
 def b_e_crash_check(bx,by,ex,ey): #: bullet - enemy 충돌 check
+
     global bullet_Size
     x_gap = abs(bx-ex)
     y_gap = abs(by-ey)
@@ -327,18 +344,22 @@ def gameOver():
     pygame.display.update()
     
     Gameover = True
+    delete_all_enemies()
     while True:
         
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 terminate()
                 Isrun = False
             elif event.type == KEYDOWN:
                 if event.key == K_r:
+                    init_Game()
                     run_Game()
                 elif event.key == K_ESCAPE:
                     terminate()
                     Isrun = False
+                
  
 #=====플레이어 강화 함수=====#
 def level_up():
@@ -406,7 +427,7 @@ def enemy_create():
             enemy_y = 0
 
         hp = cur_enemyhp
-        enemy_list.append([enemy_x,enemy_y,direction_list[random_direction],hp])
+        enemy_list.append([enemy_x,enemy_y,direction_list[random_direction],hp,YELLOW])
         enemy_count+=1
 
 #=====적 이동=====#
@@ -457,7 +478,7 @@ def enemy_moves():
 
         if len(enemy_list) != 0:
             for exy in enemy_list:
-                pygame.draw.circle(Display_surface,YELLOW,(exy[0],exy[1]),curenemy_size,curenemy_size)
+                pygame.draw.circle(Display_surface,exy[4],(exy[0],exy[1]),curenemy_size,curenemy_size)
 
 
 #enemy_list에서 enemy를 index로 제거
@@ -469,12 +490,19 @@ def enemy_delete(index):
 
 #bullet 생성
 def bullet_create(x,y,direction):
+    global bulletXYD,bulletX, bulletY  
     bulletX = x
     bulletY = y
     bulletXYD.append([bulletX,bulletY,direction])
 
 #bullet 이동 관련
 def bullet_moves():
+    global bulletXYD,bulletspeed, bullet_Size
+
+    if len(bulletXYD) != 0:
+        for bxy in bulletXYD:
+            pygame.draw.circle(Display_surface,BLUE,(bxy[0],bxy[1]),bullet_Size,bullet_Size)
+
     if len(bulletXYD) != 0:
             for i,bxy in enumerate(bulletXYD):
                 if bulletXYD[i][2]==RIGHT:
@@ -510,9 +538,13 @@ def bullet_moves():
                         except:
                             pass
                         
-    if len(bulletXYD) != 0:
-        for bxy in bulletXYD:
-            pygame.draw.circle(Display_surface,BLUE,(bxy[0],bxy[1]),bullet_Size,bullet_Size)
+
+def enemy_colorChange(index,color):
+    global enemy_list
+    enemy_list[index][4]=color
+
+    
+
 
 #=====게임 초기화&게임 실행=====#
 init_Game()
