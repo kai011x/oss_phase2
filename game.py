@@ -466,7 +466,7 @@ def enemy_moves():
         global player_pos_x, player_pos_y,Round
 
         curenemy_speed = enemy_speed * Round * 0.8
-        curenemy_size = enemy_size + Round + 1
+        curenemy_size = enemy_size + Round + 2
         
         if curenemy_size > 20:
             curenemy_size = 20
