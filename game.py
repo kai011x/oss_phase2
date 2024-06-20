@@ -18,6 +18,7 @@ RED = (255,0,0)
 GREEN = (0,255,0)
 BLUE = (0,0,255)
 YELLOW = (255,255,0)
+GRAY = (128,128,128)
 
 #=====키 변수 설정=====#
 UP = 'up'
@@ -43,9 +44,14 @@ bulletspeed = 15
 bullet_Damage = 20
 bullet_Size = 7
 
-
+#플레이어 x,y 좌표
 player_pos_x = 450
 player_pos_y = 300
+
+#플레이어 스킬 사용 가능 횟수
+player_skill_num = 3
+#플레이어가 스킬 사용중인지 확인
+IsUsingSkill = False
 
 def init_Game():
     #=====글로벌 변수 선언=====#
@@ -75,7 +81,7 @@ def init_Game():
 
 def run_Game():
     #=====글로벌 변수 선언=====#
-    global Display_surface, clock, player,player_size, bullet, Isrun, bullet_Size, player_pos_x, player_pos_y
+    global Display_surface, clock, player,player_size, bullet, Isrun, bullet_Size, player_pos_x, player_pos_y, player_skill_num, bullet_Damage
     global enemy_speed, enemy_list, enemy_limit, enemy_count,enemy_size, enemy_hp, increse_time, enemy_exp, direction_list
     global Round
     
@@ -130,10 +136,14 @@ def run_Game():
 
 
 
-        #=====플레이어&배경 업데이트=====#        
-        Display_surface.fill(BLACK)
-        drawplayer(x,y)
+        #=====플레이어&배경 업데이트=====#      
+        # 스킬 사용중이면 바탕 흰색  
+        if IsUsingSkill == True:
+            Display_surface.fill(GRAY)
+        else :
+            Display_surface.fill(BLACK)
 
+        drawplayer(x,y)
 
         #=====적 생성=====#
         enemy_create()
@@ -152,18 +162,23 @@ def run_Game():
                 if event.key == pygame.K_a:
                     direction = LEFT
                     move_x -= move_speed
-                elif event.key == pygame.K_d:
+                if event.key == pygame.K_d:
                     direction = RIGHT
                     move_x += move_speed
-                elif event.key == pygame.K_w:
+                if event.key == pygame.K_w:
                     direction = UP
                     move_y -= move_speed
-                elif event.key == pygame.K_s:
+                if event.key == pygame.K_s:
                     direction = DOWN
                     move_y += move_speed
+                
+                #플레이어 스킬 사용
+                if event.key == pygame.K_k:
+                    if IsUsingSkill == False and player_skill_num > 0:
+                        player_skill()
                     
                 #=====총알 발사(발사 위치 저장)=====#
-                elif event.key == pygame.K_SPACE:
+                if event.key == pygame.K_SPACE:
                     bullet_create(x,y,direction)
                     
                 #=====게임 종료=====#
@@ -222,10 +237,11 @@ def run_Game():
                     if b_e_crash_check(bulletXYD[j][0],bulletXYD[j][1],enemy_list[i][0],enemy_list[i][1]) == True:
                         try:
                             bulletXYD.remove(bxy)
-                            enemy_list[i][4] = RED
-                            timer = threading.Timer(0.1, enemy_colorChange, args=[i, YELLOW])
-                            timer.start()
                             enemy_list[i][3] -= bullet_Damage
+                            if(enemy_list[i][3] > 0):
+                                enemy_list[i][4] = RED
+                                timer = threading.Timer(0.1, enemy_colorChange, args=[i, YELLOW])
+                                timer.start()
                         except:
                             pass                    
       
@@ -447,7 +463,7 @@ def enemy_moves():
         if curenemy_speed > 20:
             curenemy_speed = 20
 
-        if len(enemy_list) != 0 and Round > 0:
+        if len(enemy_list) != 0 and Round > 4:
             for k,enemy in enumerate(enemy_list):
                 temp = check_playerloca(player_pos_x,player_pos_y,enemy_list[k][0],enemy_list[k][1],enemy_list[k][2])
                 if enemy_list[k][5] == False and temp != 'none':
@@ -554,12 +570,12 @@ def bullet_moves():
                         except:
                             pass
                         
-
+#적 색깔 바꾸기(피격 처리용)
 def enemy_colorChange(index,color):
     global enemy_list
     enemy_list[index][4]=color
 
-
+#적기준 플레이어 위치 알려줌
 def check_playerloca(px,py,ex,ey,direction):
 
     x_gap = abs(px-ex)
@@ -588,6 +604,27 @@ def check_playerloca(px,py,ex,ey,direction):
                 return LEFT
     else:
         return 'none'
+    
+
+#플레이어 아이템 사용효과
+def player_skill():
+    global enemy_speed, IsUsingSkill, player_skill_num
+
+    player_skill_num -= 1
+
+    IsUsingSkill = True
+    enemy_speed = 0.5
+
+    timer = threading.Timer(3, enemy_speed_return)
+    timer.start()
+
+
+def enemy_speed_return():
+    global enemy_speed,IsUsingSkill
+    IsUsingSkill = False
+    enemy_speed = 3
+
+    
 
 #=====게임 초기화&게임 실행=====#
 init_Game()
