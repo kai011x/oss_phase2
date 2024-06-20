@@ -24,7 +24,16 @@ DOWN = 'down'
 LEFT = 'left'
 RIGHT = 'right'
 
-
+#=====적 오브젝트 설정=====#
+enemy_speed = 3
+enemy_list = []
+enemy_limit = 1
+enemy_count = 0
+enemy_size = 10
+enemy_hp = 30
+increse_time = 20
+enemy_exp = 30
+direction_list = [LEFT,RIGHT,UP,DOWN]
 
 
 def init_Game():
@@ -71,16 +80,7 @@ def run_Game():
     bullet_Damage = 20
     bullet_Size = 5
     
-    #=====적 오브젝트 설정=====#
-    enemy_speed = 3
-    enemy_list = []
-    enemy_limit = 1
-    enemy_count = 0
-    enemy_size = 10
-    enemy_hp = 30
-    increse_time = 20
-    enemy_exp = 30
-    direction_list = [LEFT,RIGHT,UP,DOWN]
+
     
     #=====시작 시간 설정=====#
     start_time = datetime.datetime.now()
@@ -107,7 +107,6 @@ def run_Game():
         
         #라운드 변했는지 확인
         if BeforeRound != Round:
-            delete_all_enemies()
             continue
 
 
@@ -118,33 +117,7 @@ def run_Game():
 
 
         #=====적 생성=====#
-        if enemy_count < enemy_limit:
-            random_direction = random.randrange(0,4)
-            if(random_direction==0):
-                enemy_x = Display_width
-                enemy_y = random.randrange(10,Display_height)
-                hp = enemy_hp
-                enemy_list.append([enemy_x,enemy_y,direction_list[random_direction],hp])
-                enemy_count+=1
-            elif(random_direction==1):
-                enemy_x = 0
-                enemy_y = random.randrange(10,Display_height)
-                hp = enemy_hp
-                enemy_list.append([enemy_x,enemy_y,direction_list[random_direction],hp])
-                enemy_count+=1
-            elif(random_direction==2):
-                enemy_x = random.randrange(10,Display_width)
-                enemy_y = Display_height
-                hp = enemy_hp
-                enemy_list.append([enemy_x,enemy_y,direction_list[random_direction],hp])
-                enemy_count+=1
-            elif(random_direction==3):
-                enemy_x = random.randrange(10,Display_width)
-                enemy_y = 0
-                hp = enemy_hp
-                enemy_list.append([enemy_x,enemy_y,direction_list[random_direction],hp])
-                enemy_count+=1
-            
+        enemy_create()
         
         #=====이벤트 입력 식별=====#
         for event in pygame.event.get():
@@ -227,50 +200,14 @@ def run_Game():
         if len(bulletXYD) != 0:
             for bxy in bulletXYD:
                 pygame.draw.circle(Display_surface,BLUE,(bxy[0],bxy[1]),bullet_Size,bullet_Size)
-                
-        #=====적 이동 경로 그리기=====#
-        if len(enemy_list) != 0:
-            for i,exy in enumerate(enemy_list):
-                if enemy_list[i][2]==RIGHT:
-                    exy[0] += enemy_speed
-                    enemy_list[i][0] = exy[0]
-                    if exy[0] >= Display_width:
-                        try:
-                            enemy_list.remove(exy)
-                            enemy_count-=1
-                        except:
-                            pass
-                elif enemy_list[i][2]==LEFT:
-                    exy[0] -= enemy_speed
-                    enemy_list[i][0] = exy[0]
-                    if exy[0] <= 0:
-                        try:
-                            enemy_list.remove(exy)
-                            enemy_count-=1
-                        except:
-                            pass
-                elif enemy_list[i][2]==UP:
-                    exy[1] -= enemy_speed
-                    enemy_list[i][1] = exy[1]
-                    if exy[1] <= 0:
-                        try:
-                            enemy_list.remove(exy)
-                            enemy_count-=1
-                        except:
-                            pass
-                elif enemy_list[i][2]==DOWN:
-                    exy[1] += enemy_speed
-                    enemy_list[i][1] = exy[1]
-                    if exy[1] >= Display_height:
-                        try:
-                            enemy_list.remove(exy)
-                            enemy_count-=1
-                        except:
-                            pass
+
+        #적 이동 함수
+        enemy_moves()                
+
                         
-        if len(enemy_list) != 0:
-            for exy in enemy_list:
-                pygame.draw.circle(Display_surface,YELLOW,(exy[0],exy[1]),enemy_size,enemy_size)
+        # if len(enemy_list) != 0:
+        #     for exy in enemy_list:
+        #         pygame.draw.circle(Display_surface,YELLOW,(exy[0],exy[1]),enemy_size,enemy_size)
                 
                 
         #=====플레이어 이동 위치 조정=====#
@@ -489,10 +426,84 @@ def level_up():
                     terminate()
                     Isrun = False
 
+#=====적 생성=====#
+def enemy_create():
+    global enemy_count
 
-# def enemy_upgrade():
-    
+    cur_enemyhp = enemy_hp * Round * 0.5
 
+    if enemy_count < enemy_limit:
+        random_direction = random.randrange(0,4)
+        if(random_direction==0):
+            enemy_x = Display_width
+            enemy_y = random.randrange(10,Display_height)
+        elif(random_direction==1):
+            enemy_x = 0
+            enemy_y = random.randrange(10,Display_height)
+        elif(random_direction==2):
+            enemy_x = random.randrange(10,Display_width)
+            enemy_y = Display_height
+        elif(random_direction==3):
+            enemy_x = random.randrange(10,Display_width)
+            enemy_y = 0
+
+        hp = cur_enemyhp
+        enemy_list.append([enemy_x,enemy_y,direction_list[random_direction],hp])
+        enemy_count+=1
+
+#=====적 이동=====#
+def enemy_moves():
+        curenemy_speed = enemy_speed * Round * 1.2
+        curenemy_size = enemy_size * Round
+        
+        if curenemy_size > 20:
+            curenemy_size = 20
+
+        if curenemy_speed > 20:
+            curenemy_speed = 20
+
+        if len(enemy_list) != 0:
+            for i,exy in enumerate(enemy_list):
+                if enemy_list[i][2]==RIGHT:
+                    exy[0] += curenemy_speed
+                    enemy_list[i][0] = exy[0]
+                    if exy[0] >= Display_width:
+                        try:
+                            enemy_delete(exy)
+                        except:
+                            pass
+                elif enemy_list[i][2]==LEFT:
+                    exy[0] -= curenemy_speed
+                    enemy_list[i][0] = exy[0]
+                    if exy[0] <= 0:
+                        try:
+                           enemy_delete(exy)
+                        except:
+                            pass
+                elif enemy_list[i][2]==UP:
+                    exy[1] -= curenemy_speed
+                    enemy_list[i][1] = exy[1]
+                    if exy[1] <= 0:
+                        try:
+                           enemy_delete(exy)
+                        except:
+                            pass
+                elif enemy_list[i][2]==DOWN:
+                    exy[1] += curenemy_speed
+                    enemy_list[i][1] = exy[1]
+                    if exy[1] >= Display_height:
+                        try:
+                            enemy_delete(exy)
+                        except:
+                            pass
+
+        if len(enemy_list) != 0:
+            for exy in enemy_list:
+                pygame.draw.circle(Display_surface,YELLOW,(exy[0],exy[1]),curenemy_size,curenemy_size)
+
+def enemy_delete(index):
+    enemy_list.remove(index)
+    enemy_count-=1
 
 #=====게임 초기화&게임 실행=====#
 init_Game()
